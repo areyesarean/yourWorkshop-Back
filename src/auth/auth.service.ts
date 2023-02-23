@@ -1,12 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
-
-type User = {
-  userId: number;
-  username: string;
-  password: string;
-};
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,14 +16,14 @@ export class AuthService {
     if (!user) throw new HttpException('USER_NOT_FOUND', 403);
 
     if (user && user.password === password) {
-      const { password, ...result } = user;
+      const { password, id,name, ...result } = user;
       return result;
     } else {
       throw new HttpException('PASSWORD_INCORRECT', 403);
     }
   }
 
-  async login(user: User) {
+  async login(user: LoginDto) {
     const payload = await this.validateUser(user.username, user.password);
     const { username } = payload;
     return {

@@ -1,19 +1,25 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateUserDto } from './dto/user.dto';
+import { Permisions } from 'src/auth/decorators/permissions.decorator';
 
 @Controller('user')
-@UseGuards(JwtAuthGuard)
+@Permisions('ADMIN')
 export class UserController {
   constructor(private readonly _userService: UserService) {}
-
+  
   @Get()
-  getAllUsers(@Request() req) {
-    console.log(
-      '🚀 ~ file: user.controller.ts:11 ~ UserController ~ getAllUsers ~ req',
-      req.user,
-    );
-
+  getAllUsers() {
     return this._userService.getAllUsers();
+  }
+  
+  @Get(':username')
+  getOneUsers(@Param('username') username: string) {
+    return this._userService.findOne(username);
+  }
+
+  @Post()
+  createUser(@Body() user: CreateUserDto) {
+    return this._userService.createUser(user);
   }
 }
