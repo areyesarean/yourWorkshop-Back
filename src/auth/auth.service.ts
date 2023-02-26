@@ -1,34 +1,34 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dto/login.dto';
+import { EncodeService } from './encode.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private _userService: UserService,
     private _jwtService: JwtService,
+    private _encodeService: EncodeService,
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
-    const user = await this._userService.findOne(username);
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
 
-    if (!user) throw new HttpException('USER_NOT_FOUND', 403);
+    const user = await this._userService.findOne(email);
 
-    if (user && user.password === password) {
-      const { password, id,name, ...result } = user;
-      return result;
-    } else {
-      throw new HttpException('PASSWORD_INCORRECT', 403);
+    const comparedPassword = await this._encodeService.checkPassword(
+      password,
+      user.password,
+    );
+
+    if (user && comparedPassword) {
+      const { password, id, name, ...payload } = user;
+
+      return {
+        access_token: this._jwtService.sign(payload),
+      };
     }
-  }
-
-  async login(user: LoginDto) {
-    const payload = await this.validateUser(user.username, user.password);
-    const { username } = payload;
-    return {
-      username,
-      access_token: this._jwtService.sign(payload),
-    };
+    throw new UnauthorizedException();
   }
 }

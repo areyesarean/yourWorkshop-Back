@@ -1,20 +1,31 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { Roles } from "../dto/user.dto";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Roles } from '../dto/user.dto';
 
 @Entity('User')
-export class UserEntity{
+export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
-  @Column({type: "varchar", unique: true})
-  username: string;
+  @Column({ unique: true })
+  email: string;
 
-  @Column({type: "varchar", nullable: false})
+  @Column({ length: 100 })
   password: string;
 
-  @Column({type: "varchar", nullable: true})
+  @Column({ length: 100 })
   name: string;
 
-  @Column({type: "varchar", nullable: false})
+  @Column()
   rol: Roles;
+
+  @Column({ type: 'boolean', default: false })
+  active: boolean;
+
+  @CreateDateColumn()
+  createOne: Date;
 }

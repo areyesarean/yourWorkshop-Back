@@ -6,6 +6,7 @@ import { UserModule } from 'src/user/user.module';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
+import { EncodeService } from './encode.service';
 
 @Module({
   imports: [
@@ -17,13 +18,13 @@ import { AuthController } from './auth.controller';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('SECRET_KEY'),
         signOptions: {
-          expiresIn: "20h",
+          expiresIn: "3600s",
         },
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, EncodeService],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, EncodeService],
 })
 export class AuthModule {}
