@@ -26,6 +26,12 @@ export class UserEntity {
   @Column({ type: 'boolean', default: false })
   active: boolean;
 
-  @CreateDateColumn()
+  @Column({ type: 'uuid', name: 'activation_token', nullable: true, unique: true })
+  activationToken: string;
+
+  @Column({ type: 'uuid', name: 'reset_password_token', nullable: true, unique: true })
+  resetPasswordToken: string;
+
+  @CreateDateColumn({name: "create_one"})
   createOne: Date;
 }

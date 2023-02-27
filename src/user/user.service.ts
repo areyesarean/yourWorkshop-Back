@@ -4,6 +4,7 @@ import {
   HttpStatus,
   ConflictException,
   InternalServerErrorException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +12,7 @@ import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { EncodeService } from 'src/auth/encode.service';
+import { ActivateUserDto } from 'src/auth/dto/activate-user.dto';
 
 @Injectable()
 export class UserService {
@@ -35,8 +37,11 @@ export class UserService {
   async createUser(user: CreateUserDto): Promise<UserEntity> {
     const { password } = user;
     const passHash = await this._encodeService.encodePassword(password);
-    const userPassHash = { ...user, password: passHash };
+
+    const userPassHash = { ...user, password: passHash, activationToken: '' };
+
     const userAfterCreate = this._userRepository.create(userPassHash);
+
     try {
       return await this._userRepository.save(userAfterCreate);
     } catch (error) {
@@ -49,7 +54,7 @@ export class UserService {
 
   async updateUser(
     email: string,
-    updateUser: UpdateUserDto,
+    updateUser: UpdateUserDto | { active: boolean },
   ): Promise<UserEntity> {
     const userFind = await this._userRepository.findOne({
       where: { email },
@@ -67,5 +72,21 @@ export class UserService {
       throw new ConflictException('This id dont exist');
     }
     return id;
+  }
+
+  async findInactiveByIdAndActivationToken(
+    data: ActivateUserDto,
+  ): Promise<UserEntity> {
+    const { code, id } = data;
+    const user = await this._userRepository.findOne({
+      where: { id, activationToken: code, active: false },
+    });
+    if (!user) throw new UnprocessableEntityException();
+    return user;
+  }
+
+  async activateUser(data: ActivateUserDto): Promise<void> {
+    const user = await this.findInactiveByIdAndActivationToken(data);
+    this.updateUser(user.email, { active: true });
   }
 }
