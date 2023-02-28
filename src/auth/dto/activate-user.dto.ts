@@ -6,7 +6,7 @@ export class ActivateUserDto{
   @IsNotEmpty()
   id: string;
 
-  @IsUUID()
+  @IsUUID("4")
   @IsNotEmpty()
   code: string;
 }

@@ -26,7 +26,7 @@ export class UserEntity {
   @Column({ type: 'boolean', default: false })
   active: boolean;
 
-  @Column({ type: 'uuid', name: 'activation_token', nullable: true, unique: true })
+  @Column({ type: 'uuid', name: 'activation_token', nullable: false, unique: true })
   activationToken: string;
 
   @Column({ type: 'uuid', name: 'reset_password_token', nullable: true, unique: true })

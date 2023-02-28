@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { EncodeService } from 'src/auth/encode.service';
 import { ActivateUserDto } from 'src/auth/dto/activate-user.dto';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class UserService {
@@ -29,6 +30,20 @@ export class UserService {
     return user;
   }
 
+  async findOneUserByEmailAndActive(email: string): Promise<UserEntity> {
+    const user = await this._userRepository.findOne({ where: { email, active: true } });
+    if (!user)
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    return user;
+  }
+
+  async findOneById(id: string): Promise<UserEntity> {
+    const user = await this._userRepository.findOne({ where: { id } });
+    if (!user)
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    return user;
+  }
+
   async getAllUsers(): Promise<UserEntity[]> {
     const users = await this._userRepository.find();
     return users;
@@ -37,8 +52,8 @@ export class UserService {
   async createUser(user: CreateUserDto): Promise<UserEntity> {
     const { password } = user;
     const passHash = await this._encodeService.encodePassword(password);
-
-    const userPassHash = { ...user, password: passHash, activationToken: '' };
+    const activationToken = v4();
+    const userPassHash = { ...user, password: passHash, activationToken };
 
     const userAfterCreate = this._userRepository.create(userPassHash);
 
@@ -54,7 +69,10 @@ export class UserService {
 
   async updateUser(
     email: string,
-    updateUser: UpdateUserDto | { active: boolean },
+    updateUser:
+      | UpdateUserDto
+      | { active: boolean }
+      | { resetPasswordToken: string },
   ): Promise<UserEntity> {
     const userFind = await this._userRepository.findOne({
       where: { email },
@@ -80,6 +98,16 @@ export class UserService {
     const { code, id } = data;
     const user = await this._userRepository.findOne({
       where: { id, activationToken: code, active: false },
+    });
+    if (!user) throw new UnprocessableEntityException();
+    return user;
+  }
+
+  async findUserByResetPasswordToken(
+    resetPasswordToken: string,
+  ): Promise<UserEntity> {
+    const user = await this._userRepository.findOne({
+      where: { resetPasswordToken, active: true },
     });
     if (!user) throw new UnprocessableEntityException();
     return user;

@@ -4,6 +4,10 @@ import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { EncodeService } from './encode.service';
 import { ActivateUserDto } from './dto/activate-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { RequestResetPasswordDto } from './dto/request-reset-password.dto';
+import { v4 } from 'uuid';
+import { UserEntity } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -15,8 +19,12 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-
-    const user = await this._userService.findOne(email);
+    let user: UserEntity;
+    try {
+      user = await this._userService.findOneUserByEmailAndActive(email);
+    } catch (error) {
+      throw new UnauthorizedException()
+    }
 
     const comparedPassword = await this._encodeService.checkPassword(
       password,
@@ -34,6 +42,24 @@ export class AuthService {
   }
 
   async activateUser(data: ActivateUserDto): Promise<void> {
-    return await this._userService.activateUser(data);
+    await this._userService.activateUser(data);
+  }
+
+  async requestResetPassword({
+    email,
+  }: RequestResetPasswordDto): Promise<void> {
+    await this._userService.findOne(email);
+    const resetPasswordToken = v4();
+    await this._userService.updateUser(email, { resetPasswordToken });
+  }
+
+  async resetPassword(data: ChangePasswordDto): Promise<void> {
+    const { code, newPassword } = data;
+    const user = await this._userService.findUserByResetPasswordToken(code);
+    const password = await this._encodeService.encodePassword(newPassword);
+    await this._userService.updateUser(user.email, {
+      password,
+      resetPasswordToken: null,
+    });
   }
 }
