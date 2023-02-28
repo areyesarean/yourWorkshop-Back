@@ -38,7 +38,7 @@ export class AuthService {
         access_token: this._jwtService.sign(payload),
       };
     }
-    throw new UnauthorizedException();
+    throw new UnauthorizedException('Please check your credentials');
   }
 
   async activateUser(data: ActivateUserDto): Promise<void> {
