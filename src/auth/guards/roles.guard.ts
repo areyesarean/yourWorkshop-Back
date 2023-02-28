@@ -19,6 +19,6 @@ export class RolesGuard implements CanActivate {
     //El user viene del metodo validate de la estrategia que inyecta el payload del token en el request object
 
     const search = this.roles.find((rol) => rol === user.rol);
-    return user.rol === search ? true : false;
+    return user.rol === search;
   }
 }
