@@ -28,6 +28,10 @@ export class CreateUserDto {
   name: string;
 
   @IsNotEmpty()
+  @IsString()
+  lastName: string;
+
+  @IsNotEmpty()
   @IsEnum(Roles)
   rol: Roles;
 }

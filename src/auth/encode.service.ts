@@ -11,8 +11,8 @@ export class EncodeService {
 
   async checkPassword(
     password: string,
-    userPassword: string,
+    encryptedPassword: string,
   ): Promise<boolean> {
-    return await compare(password, userPassword);
+    return await compare(password, encryptedPassword);
   }
 }

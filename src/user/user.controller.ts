@@ -13,7 +13,7 @@ import { Permisions } from 'src/auth/decorators/permissions.decorator';
 import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Controller('user')
-@Permisions('ADMIN')
+//@Permisions('ADMIN')
 export class UserController {
   constructor(private readonly _userService: UserService) {}
 
@@ -25,6 +25,11 @@ export class UserController {
   @Get(':email')
   getOneUsers(@Param('email') email: string) {
     return this._userService.findOne(email);
+  }
+
+  @Get('/getUserByResetPassword/:resetPasswordToken')
+  getUserByResetPasswordToken(@Param('resetPasswordToken') resetPasswordToken: string) {
+    return this._userService.findUserByResetPasswordToken(resetPasswordToken);
   }
 
   @Post()

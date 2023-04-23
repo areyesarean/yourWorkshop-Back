@@ -31,7 +31,9 @@ export class UserService {
   }
 
   async findOneUserByEmailAndActive(email: string): Promise<UserEntity> {
-    const user = await this._userRepository.findOne({ where: { email, active: true } });
+    const user = await this._userRepository.findOne({
+      where: { email, active: true },
+    });
     if (!user)
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     return user;
@@ -78,7 +80,7 @@ export class UserService {
       where: { email },
     });
     if (!userFind)
-      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+      throw new UnprocessableEntityException('User not found');
     const userBeforeUpdate = this._userRepository.merge(userFind, updateUser);
     return await this._userRepository.save(userBeforeUpdate);
   }
@@ -95,9 +97,9 @@ export class UserService {
   async findInactiveByIdAndActivationToken(
     data: ActivateUserDto,
   ): Promise<UserEntity> {
-    const { code, id } = data;
+    const { activationToken, id } = data;
     const user = await this._userRepository.findOne({
-      where: { id, activationToken: code, active: false },
+      where: { id, activationToken, active: false },
     });
     if (!user) throw new UnprocessableEntityException();
     return user;
@@ -109,12 +111,16 @@ export class UserService {
     const user = await this._userRepository.findOne({
       where: { resetPasswordToken, active: true },
     });
-    if (!user) throw new UnprocessableEntityException();
+    if (!user) throw new UnprocessableEntityException("Usuario no encontrado");
     return user;
   }
 
   async activateUser(data: ActivateUserDto): Promise<void> {
     const user = await this.findInactiveByIdAndActivationToken(data);
-    this.updateUser(user.email, { active: true });
+    await this.updateUser(user.email, { active: true });
+  }
+
+  async changePassword(email: string, newPassword: string) {
+    return await this.updateUser(email, { password: newPassword });
   }
 }

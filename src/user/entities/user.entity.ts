@@ -8,6 +8,7 @@ import { Roles } from '../dto/user.dto';
 
 @Entity('User')
 export class UserEntity {
+  
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -20,7 +21,10 @@ export class UserEntity {
   @Column({ length: 100 })
   name: string;
 
-  @Column()
+  @Column({ length: 100, name: "last_name", nullable: true })
+  lastName: string;
+
+  @Column({default: "USER"})
   rol: Roles;
 
   @Column({ type: 'boolean', default: false })

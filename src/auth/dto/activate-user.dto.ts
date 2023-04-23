@@ -8,5 +8,5 @@ export class ActivateUserDto{
 
   @IsUUID("4")
   @IsNotEmpty()
-  code: string;
+  activationToken: string;
 }
